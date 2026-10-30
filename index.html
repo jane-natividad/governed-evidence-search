@@ -209,7 +209,7 @@
     <details style="margin-top:8px;font-size:11.8px;color:var(--muted)">
       <summary style="cursor:pointer">Endpoint &amp; model (advanced)</summary>
       <div class="key-row" style="margin-top:6px"><input type="text" id="llm-base" aria-label="Base URL" spellcheck="false"></div>
-      <div class="key-row" style="margin-top:6px"><input type="text" id="llm-model" aria-label="Model" spellcheck="false"></div>
+      <div class="key-row" style="margin-top:6px"><input type="text" id="llm-model" aria-label="Model" placeholder="Model name" spellcheck="false"></div>
     </details>
     <p class="key-note">Works with any model behind an OpenAI-compatible or Anthropic-style API &mdash; hosted, or a local Llama server. Your key stays in this browser tab's memory only &mdash; never stored, never sent anywhere but <b id="llm-host"></b>, gone on refresh. Please use example questions only, not real or confidential information.</p>
     <div class="key-status" id="key-status"></div>
@@ -444,7 +444,7 @@
   /* ---------- 4. Optional grounded LLM call (any OpenAI-compatible or Anthropic-style API) ---------- */
   var PROVIDERS = {
     openai: { baseUrl: "https://openrouter.ai/api/v1", model: "meta-llama/llama-3.3-70b-instruct" },
-    anthropic: { baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4-5" }
+    anthropic: { baseUrl: "https://api.anthropic.com/v1", model: "" }
   };
   var providerEl = document.getElementById("llm-provider");
   var baseEl = document.getElementById("llm-base");
@@ -458,6 +458,7 @@
 
   async function callLLM(apiKey, system, user) {
     var base = baseEl.value.replace(/\/+$/, ""), model = modelEl.value.trim(), res;
+    if (!model) throw new Error("add a model name under \"Endpoint & model (advanced)\"");
     if (providerEl.value === "anthropic") {
       res = await fetch(base + "/messages", {
         method: "POST",

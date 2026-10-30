@@ -1,39 +1,53 @@
 # Governed Evidence Search
 
-Retrieval-augmented search over a synthetic clinical trial protocol corpus, with governance built in from the start: deterministic retrieval first, an optional grounded and cited AI synthesis second, and the exact model context one click away.
+Searches trial protocols and shows its work at every step, with optional AI answers that cite their sources.
 
-**[Live demo](https://governed-evidence-search.vercel.app)** — works immediately with the built-in deterministic retrieval, no setup required. Adding the AI-synthesized, cited answer on top needs your own LLM API key — any OpenAI-compatible API (OpenAI, OpenRouter, Groq, Together, or a local Llama server) or an Anthropic-style API. The key is used client-side only and is never stored or sent anywhere except the endpoint you choose. Please use fictional/sample data only.
+**[Try the live demo](https://governed-evidence-search.vercel.app)**. It works straight away with no setup. To try the AI step, paste your own LLM API key. It works with any OpenAI compatible API (OpenAI, OpenRouter, Groq, Together, or Llama running on your own machine) or an Anthropic style API. Your key stays in your browser and is only sent to the endpoint you choose. Please use fictional or sample data only.
+
+## Why I built it
+
+Every AI search demo I saw skipped the part a regulated team cares about most: what was retrieved, and whether the answer actually used it. So I started from that end, built the scaffolding first, and made every step visible.
+
+## The problem
+
+Most AI search demos hide the important part: what was retrieved, why, and whether the model actually used it. In a regulated setting, a tool nobody can audit is a tool nobody can trust.
+
+## What I built
+
+A search tool over 12 made up trial protocols. It finds the best matches itself with no AI and no setup. If you add your own key, it writes a short answer using only those excerpts, cites a protocol for every statement, and shows exactly what the model was given.
 
 ## Who it's for
 
-Clinical development, medical affairs, and real-world-evidence teams evaluating how to put generative AI on top of protocol and evidence libraries safely.
-
-## Why it matters
-
-Most AI search demos hide the important part: what got retrieved, why, and whether the model actually used it. In a regulated evidence setting, a tool nobody can audit is a tool nobody can trust with a real decision. This tool makes every step visible: what was retrieved, why, and exactly what the model was given, so an answer can be checked rather than trusted.
+Clinical development, medical affairs and real world evidence teams exploring how to use generative AI safely.
 
 ## What it does
 
-- Ask a question in plain language, or click an example, and see the ranked protocols with match scores and matched terms
-- Get a deterministic, no-model readout of the retrieved records
-- Optionally add your own LLM API key — OpenAI-compatible (including Llama models) or Anthropic-style, kept in browser memory only — for a grounded synthesis that cites protocol IDs and says when the excerpts aren't enough
-- Inspect exactly what was sent to the model
+- Ask a plain language question and see ranked protocols with match scores
+- Get a readout of the matches with no model involved
+- Optionally add your own key for a grounded, cited answer
+- See exactly what was sent to the model
 
-## Product decisions that mattered more than the model
+## Decisions that shaped it
 
-1. **Retrieval before generation** — the pipeline is fixed by code, not chosen by the model
-2. **Data minimization** — the model only ever sees the few excerpts retrieval selected
-3. **Works without AI** — the deterministic path is useful on its own, so the AI layer is additive
+1. **Retrieval comes first:** the code decides each step, so the process is predictable.
+2. **The model sees very little:** only the few excerpts that matched are shared.
+3. **Useful on its own:** the search works without AI, which makes the AI step a bonus.
+
+## Key takeaway
+
+The model is the easy, swappable part. The real work is everything around it.
 
 ## Built with
 
-- HTML, CSS, JavaScript (single-file prototype, no framework, no build step)
-- Any LLM API, provider-agnostic: OpenAI-compatible or Anthropic-style (optional, called from the browser with a user-supplied key)
+- HTML, CSS and JavaScript in a single file
+- Any LLM API (optional, bring your own key)
 
-## Run locally
+## Run it locally
 
-Open `index.html` in any browser — no install needed.
+Open `index.html` in any browser. There's nothing to install.
 
-## Status
+## About this project
 
-This is a prototype built to explore a problem space, using fictional/synthetic data — not a finished product and not connected to any organization's real systems. Built by [Jane Natividad](https://github.com/jane-natividad) — see more at [jane-natividad.github.io](https://jane-natividad.github.io).
+This is a working prototype I built to explore a real problem space. It uses illustrative, fictional data and isn't connected to any organisation's systems. You can find more of my work at [jane-natividad.github.io](https://jane-natividad.github.io).
+
+Built by [Jane Natividad](https://github.com/jane-natividad).
