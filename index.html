@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search That Shows Its Work — Governed Evidence Search | Jane Natividad</title>
+<meta name="description" content="A retrieval-augmented search work sample over synthetic clinical trial protocols, built with the governance and provenance requirements of a regulated data environment designed in from the start.">
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --accent: #0071e3;
+    --accent-soft: #e8f2ff;
+    --accent-border: #cce2ff;
+    --ink: #1d1d1f;
+    --ink-soft: #48484a;
+    --muted: #6e6e73;
+    --hairline: #e5e5e7;
+    --panel: #f5f5f7;
+    --bg: #ffffff;
+    --good: #1a7f4e;
+    --good-soft: #e7f6ee;
+    --warn: #9a6b00;
+    --warn-soft: #fff6e0;
+  }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 14px; }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 14px; line-height: 1.18; text-wrap: balance; }
+  .byline { font-size: 12.8px; color: var(--muted); margin: 0 0 28px; }
+  .byline a { color: var(--muted); }
+  p { font-size: 14.5px; line-height: 1.62; color: var(--ink-soft); margin: 0 0 16px; }
+  .lede { font-size: 15.5px; line-height: 1.6; color: var(--ink); background: var(--panel); border-radius: 14px; padding: 20px 24px; margin: 0 0 28px; }
+  .section-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 36px 0 14px; }
+  .section-label:first-of-type { margin-top: 0; }
+  .disclosure { font-size: 11.5px; line-height: 1.55; color: var(--muted); background: var(--panel); border-radius: 10px; padding: 12px 16px; margin: 0 0 32px; }
+
+  /* pipeline strip */
+  .pipeline { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+  .pipe-step {
+    flex: 1 1 auto; min-width: 130px; background: var(--panel); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 10px 12px; font-size: 11.3px; color: var(--ink-soft); line-height: 1.4;
+  }
+  .pipe-step b { display: block; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 3px; }
+  .pipeline-note { font-size: 11.5px; color: var(--muted); margin: 0 0 32px; }
+
+  /* search box */
+  .search-panel { background: var(--panel); border-radius: 14px; padding: 20px 22px; margin: 0 0 18px; }
+  .search-row { display: flex; gap: 8px; }
+  #q {
+    flex: 1; font-size: 14px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--hairline);
+    background: #fff; color: var(--ink); font-family: inherit;
+  }
+  #q:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #search-btn {
+    font-size: 13px; font-weight: 600; color: #fff; background: var(--accent); border: none; border-radius: 10px;
+    padding: 0 20px; cursor: pointer; white-space: nowrap;
+  }
+  #search-btn:hover { background: #005bbf; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    font-size: 11.8px; color: var(--accent); background: #fff; border: 1px solid var(--accent-border); border-radius: 999px;
+    padding: 6px 13px; cursor: pointer; text-align: left;
+  }
+  .chip:hover { background: var(--accent-soft); }
+
+  /* retrieval results */
+  .results { display: flex; flex-direction: column; gap: 10px; margin: 0 0 6px; }
+  .result-card { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; }
+  .result-card.top { border-color: var(--accent-border); background: var(--accent-soft); }
+  .result-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .result-title { font-size: 13.3px; font-weight: 600; color: var(--ink); }
+  .result-score { font-size: 11px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .result-meta { font-size: 11.3px; color: var(--muted); margin-bottom: 6px; }
+  .result-meta span { margin-right: 10px; }
+  .result-match { font-size: 11.3px; color: var(--ink-soft); }
+  .result-match b { color: var(--ink); font-weight: 600; }
+  .empty-note { font-size: 12.5px; color: var(--muted); font-style: italic; padding: 6px 2px 0; }
+
+  /* synthesis */
+  .synth-box { background: #fff; border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px; margin: 14px 0 8px; }
+  .synth-box.ai { border-color: var(--accent-border); }
+  .synth-label { font-size: 10.3px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+  .synth-label.ai { color: var(--accent); }
+  .synth-body { font-size: 13.3px; line-height: 1.62; color: var(--ink); }
+  .synth-body .cite { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 5px; padding: 1px 5px; white-space: nowrap; }
+  .synth-line { margin: 0 0 8px; }
+  .synth-line:last-child { margin-bottom: 0; }
+
+  details.context { margin: 10px 0 0; font-size: 11.8px; color: var(--muted); }
+  details.context summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+  details.context pre {
+    white-space: pre-wrap; word-break: break-word; background: var(--panel); border-radius: 8px;
+    padding: 12px 14px; margin: 8px 0 0; font-size: 11px; line-height: 1.55; color: var(--ink-soft);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  /* key row */
+  .key-panel { border: 1px dashed var(--hairline); border-radius: 12px; padding: 14px 16px; margin: 18px 0 36px; }
+  .key-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .key-row input[type="password"], .key-row input[type="text"] {
+    flex: 1; min-width: 220px; font-size: 12.8px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--hairline);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .key-row button {
+    font-size: 12px; font-weight: 600; color: var(--accent); background: #fff; border: 1px solid var(--accent-border);
+    border-radius: 8px; padding: 8px 14px; cursor: pointer;
+  }
+  .key-row button:hover { background: var(--accent-soft); }
+  .key-note { font-size: 11.3px; color: var(--muted); margin: 8px 0 0; }
+  .key-status { font-size: 11.5px; margin-top: 8px; }
+  .key-status.ok { color: var(--good); }
+  .key-status.err { color: #b3261e; }
+  .key-status.pending { color: var(--muted); }
+
+  /* governance */
+  .gov-grid { display: flex; flex-direction: column; gap: 10px; margin: 0 0 36px; }
+  .gov-item { display: flex; gap: 12px; border: 1px solid var(--hairline); border-radius: 12px; padding: 13px 16px; }
+  .gov-icon {
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700;
+  }
+  .gov-text b { display: block; font-size: 12.8px; color: var(--ink); margin-bottom: 2px; }
+  .gov-text span { font-size: 12.2px; color: var(--ink-soft); line-height: 1.55; }
+
+  .not-list { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 36px; padding-left: 20px; }
+  .not-list li { margin-bottom: 6px; }
+
+  .why { font-size: 13.3px; font-style: italic; color: var(--ink); background: var(--panel); border-radius: 14px; padding: 18px 22px; margin: 0 0 40px; line-height: 1.58; }
+
+  footer { border-top: 1px solid var(--hairline); padding-top: 20px; font-size: 12px; color: var(--muted); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .back-link { display: inline-block; font-size: 12px; color: var(--muted); text-decoration: none; margin-bottom: 22px; }
+  .back-link:hover { color: var(--accent); }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 40px 18px 60px; }
+    h1 { font-size: 24px; }
+    .search-row { flex-direction: column; }
+    #search-btn { padding: 11px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back-link" href="https://jane-natividad.github.io">&larr; Back to portfolio</a>
+
+  <div class="eyebrow">Clinical Evidence · Governed AI · Working Prototype</div>
+  <h1>Semantic search over trial protocols, with the governance built in from the start</h1>
+  <p class="byline">Jane Natividad &nbsp;&middot;&nbsp; <a href="https://jane-natividad.github.io">jane-natividad.github.io</a> &nbsp;&middot;&nbsp; <a href="https://github.com/jane-natividad/governed-evidence-search">View on GitHub</a></p>
+
+  <div class="lede">
+    Most RAG demos hide the interesting part: what got retrieved, why, and whether the model actually used it. In a regulated data environment that's not a UI nicety, it's the whole question &mdash; a clinical evidence tool nobody can audit is a tool nobody can trust with a real decision. So this one shows its work at every step: ask a question, watch the deterministic retrieval run first (works with zero setup), then optionally hand the retrieved excerpts &mdash; and only those excerpts &mdash; to a language model of your choice for a grounded, cited synthesis.
+  </div>
+
+  <div class="section-label">The pipeline</div>
+  <div class="pipeline">
+    <div class="pipe-step"><b>1 · Retrieve</b>Deterministic TF&#8209;IDF search ranks the synthetic protocol corpus against your question. No model, no key, no network call.</div>
+    <div class="pipe-step"><b>2 · Ground</b>Only the top-matched excerpts are kept as context &mdash; the full corpus never leaves this step.</div>
+    <div class="pipe-step"><b>3 · Generate</b>If you add a key, the language model you choose synthesizes an answer from that grounded context only, instructed to say so if it isn't enough.</div>
+    <div class="pipe-step"><b>4 · Cite &amp; flag</b>Every synthesized claim is tied to a protocol ID, and the output is labeled as needing human review before it informs anything real.</div>
+  </div>
+  <p class="pipeline-note">This is the "agentic workflow" pattern in miniature: a fixed, inspectable sequence of steps with a grounding constraint at each hand-off &mdash; not an autonomous agent making its own calls about what to search or what to trust.</p>
+
+  <div class="section-label">Ask the corpus</div>
+  <div class="search-panel">
+    <div class="search-row">
+      <input type="text" id="q" placeholder="e.g. Which trials allow patients who already failed an anti-TNF?" autocomplete="off">
+      <button id="search-btn" type="button">Search</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="section-label">Step 1&ndash;2 &middot; Retrieval &amp; grounding</div>
+  <div class="results" id="results"></div>
+  <div class="empty-note" id="empty-note">Type a question above, or click an example, to run the retrieval.</div>
+
+  <div id="synth-section" style="display:none;">
+    <div class="section-label">Step 3&ndash;4 &middot; Synthesis</div>
+    <div class="synth-box" id="deterministic-synth">
+      <div class="synth-label">Deterministic synthesis &middot; no model involved</div>
+      <div class="synth-body" id="deterministic-body"></div>
+    </div>
+    <div class="synth-box ai" id="ai-synth" style="display:none;">
+      <div class="synth-label ai">AI synthesis &middot; grounded to the excerpts above only</div>
+      <div class="synth-body" id="ai-body"></div>
+      <details class="context">
+        <summary>What was actually sent to the model</summary>
+        <pre id="context-preview"></pre>
+      </details>
+    </div>
+  </div>
+
+  <div class="key-panel">
+    <div class="key-row" style="margin-bottom:8px">
+      <select id="llm-provider" aria-label="API style" style="flex:1;min-width:220px;font-size:12.8px;padding:9px 12px;border-radius:8px;border:1px solid var(--hairline);background:#fff;font-family:inherit">
+        <option value="openai">OpenAI-compatible API (OpenAI, OpenRouter, Groq, Together, local Llama…)</option>
+        <option value="anthropic">Anthropic Messages API</option>
+      </select>
+    </div>
+    <div class="key-row">
+      <input type="password" id="api-key" placeholder="Optional: your LLM API key, to see step 3 run live">
+      <button id="key-btn" type="button">Run synthesis</button>
+    </div>
+    <details style="margin-top:8px;font-size:11.8px;color:var(--muted)">
+      <summary style="cursor:pointer">Endpoint &amp; model (advanced)</summary>
+      <div class="key-row" style="margin-top:6px"><input type="text" id="llm-base" aria-label="Base URL" spellcheck="false"></div>
+      <div class="key-row" style="margin-top:6px"><input type="text" id="llm-model" aria-label="Model" spellcheck="false"></div>
+    </details>
+    <p class="key-note">Works with any model behind an OpenAI-compatible or Anthropic-style API &mdash; hosted, or a local Llama server. Your key stays in this browser tab's memory only &mdash; never stored, never sent anywhere but <b id="llm-host"></b>, gone on refresh. Please use example questions only, not real or confidential information.</p>
+    <div class="key-status" id="key-status"></div>
+  </div>
+
+  <div class="section-label">Governance, by design not by policy doc</div>
+  <div class="gov-grid">
+    <div class="gov-item">
+      <div class="gov-icon">1</div>
+      <div class="gov-text"><b>Data minimization</b><span>The model only ever sees the small set of excerpts retrieval already ranked as relevant &mdash; never the full corpus, never your raw question history.</span></div>
+    </div>
+    <div class="gov-item">
+      <div class="gov-icon">2</div>
+      <div class="gov-text"><b>Provenance on every claim</b><span>The synthesis is instructed to cite a protocol ID for every statement, and to say "not enough in the retrieved set" rather than fill the gap from general knowledge.</span></div>
+    </div>
+    <div class="gov-item">
+      <div class="gov-icon">3</div>
+      <div class="gov-text"><b>Inspectable context</b><span>The exact text handed to the model is one click away, above &mdash; nothing about what it "saw" is hidden inside the request.</span></div>
+    </div>
+    <div class="gov-item">
+      <div class="gov-icon">4</div>
+      <div class="gov-text"><b>Synthetic data only</b><span>All 12 protocols are fictional, generated for this demo. No real patient data, real trial data, or proprietary information from any organization is used anywhere on this page.</span></div>
+    </div>
+    <div class="gov-item">
+      <div class="gov-icon">5</div>
+      <div class="gov-text"><b>Human review, explicitly flagged</b><span>Every synthesized answer is labeled as a work sample requiring scientific and regulatory review &mdash; this page automates retrieval and drafting, not the decision.</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">What this deliberately does not do</div>
+  <ul class="not-list">
+    <li>No real embeddings or vector database &mdash; retrieval is TF&#8209;IDF cosine similarity over 12 records, enough to demonstrate the pattern honestly, not benchmarked at production scale or corpus size.</li>
+    <li>No connection to any real system &mdash; not a public trial registry, not any sponsor's internal system, not any regulated data source. Everything here is offline and synthetic.</li>
+    <li>No autonomous decisions &mdash; the model never chooses what to retrieve, what to trust, or what to do next. Every step in the pipeline above is fixed by the code, not by the model.</li>
+    <li>No fine-tuning, no persistence, no logging of anything you type &mdash; this is a static page with client-side JavaScript, nothing is sent anywhere except the one optional call to the model endpoint you choose, if you supply a key.</li>
+  </ul>
+
+  <div class="why">
+    "The reason this took a weekend and not a quarter isn't that governed GenAI is easy &mdash; it's that most of the effort in a real deployment isn't the model call, it's everything around it: what gets retrieved, what gets shown, what gets logged, what a reviewer can check. Build that scaffolding first and the model becomes the easy, swappable part."
+  </div>
+
+  <div class="disclosure">Prototype with synthetic data. All 12 protocol records are fictional, generated for this demo; none reflect real trials, real patients, or any organization's real programs. Not medical or regulatory advice.</div>
+
+  <footer>Built by <a href="https://jane-natividad.github.io">Jane Natividad</a>. No frameworks, no build step &mdash; a static page, a hand-written TF&#8209;IDF search, and one optional grounded API call. Companion to <a href="https://change-adoption-tracker.vercel.app">Change, Tracked to Adoption</a>.</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- 1. Synthetic corpus ---------- */
+  var CORPUS = [
+    { id: "RWE-SYN-001", title: "IL-23 inhibitor in moderate-to-severe Crohn's disease", phase: "Phase 3", indication: "Crohn's disease", mechanism: "IL-23 inhibitor (monoclonal antibody)", priorTherapy: "Prior anti-TNF failure or intolerance permitted", biomarker: "Fecal calprotectin > 250 mcg/g at baseline", endpoint: "Clinical remission at week 52", region: "Global, incl. EU/Switzerland", status: "Recruiting" },
+    { id: "RWE-SYN-002", title: "JAK1-selective inhibitor in ulcerative colitis, prior biologic failure", phase: "Phase 2", indication: "Ulcerative colitis", mechanism: "JAK1-selective oral inhibitor", priorTherapy: "Requires prior anti-TNF AND prior anti-integrin failure", biomarker: "None required for enrollment", endpoint: "Endoscopic improvement at week 12", region: "North America, EU", status: "Active, not recruiting" },
+    { id: "RWE-SYN-003", title: "Anti-tau monoclonal antibody in biomarker-confirmed early Alzheimer's disease", phase: "Phase 2", indication: "Early Alzheimer's disease", mechanism: "Anti-tau monoclonal antibody", priorTherapy: "Prior anti-amyloid therapy is an exclusion criterion", biomarker: "Tau-PET positive required for enrollment", endpoint: "Change in CDR-SB at 18 months", region: "Global", status: "Recruiting" },
+    { id: "RWE-SYN-004", title: "Alpha-synuclein targeted therapy in early Parkinson's disease", phase: "Phase 1", indication: "Parkinson's disease", mechanism: "Alpha-synuclein targeted immunotherapy", priorTherapy: "Treatment-naive to disease-modifying therapy", biomarker: "CSF alpha-synuclein seed amplification assay positive", endpoint: "Safety and tolerability", region: "EU", status: "Recruiting" },
+    { id: "RWE-SYN-005", title: "Antibody-drug conjugate in HER2-low metastatic breast cancer", phase: "Phase 3", indication: "HER2-low metastatic breast cancer", mechanism: "HER2-targeted antibody-drug conjugate", priorTherapy: "Prior CDK4/6 inhibitor therapy permitted", biomarker: "Companion diagnostic required: HER2 IHC 1+ or 2+/ISH-negative", endpoint: "Progression-free survival", region: "Global", status: "Recruiting" },
+    { id: "RWE-SYN-006", title: "Third-generation EGFR TKI combination in EGFR-mutant NSCLC", phase: "Phase 2", indication: "Non-small cell lung cancer", mechanism: "Third-generation EGFR tyrosine kinase inhibitor, combination arm", priorTherapy: "Prior first- or second-generation EGFR TKI permitted", biomarker: "EGFR exon 19 deletion or L858R, with or without T790M", endpoint: "Objective response rate", region: "Asia-Pacific, EU", status: "Recruiting" },
+    { id: "RWE-SYN-007", title: "Single-administration gene therapy for neovascular age-related macular degeneration", phase: "Phase 3", indication: "Neovascular age-related macular degeneration", mechanism: "AAV-vector gene therapy, single intravitreal administration", priorTherapy: "Prior anti-VEGF therapy required for enrollment", biomarker: "None required", endpoint: "Change in best-corrected visual acuity at 52 weeks", region: "Global", status: "Active, not recruiting" },
+    { id: "RWE-SYN-008", title: "Bispecific anti-VEGF/Ang-2 in diabetic macular edema", phase: "Phase 2", indication: "Diabetic macular edema", mechanism: "Bispecific anti-VEGF / anti-angiopoietin-2 antibody", priorTherapy: "Anti-VEGF-naive and pre-treated cohorts both enrolled", biomarker: "Central subfield thickness by OCT above threshold", endpoint: "Best-corrected visual acuity change at 24 weeks", region: "North America", status: "Recruiting" },
+    { id: "RWE-SYN-009", title: "GLP-1/amylin dual agonist in obesity with type 2 diabetes", phase: "Phase 2", indication: "Obesity with type 2 diabetes", mechanism: "GLP-1 / amylin dual receptor agonist", priorTherapy: "Prior GLP-1 receptor agonist monotherapy permitted", biomarker: "None required", endpoint: "Percent body weight change at 52 weeks", region: "Global", status: "Recruiting" },
+    { id: "RWE-SYN-010", title: "SGLT2 inhibitor combination in heart failure with preserved ejection fraction", phase: "Phase 3", indication: "Heart failure with preserved ejection fraction", mechanism: "SGLT2 inhibitor, fixed-dose combination arm", priorTherapy: "Stable background heart failure therapy required", biomarker: "NT-proBNP elevated above age/BMI-adjusted threshold", endpoint: "Composite of cardiovascular death or heart failure hospitalization", region: "Global", status: "Recruiting" },
+    { id: "RWE-SYN-011", title: "BCMA x CD3 bispecific T-cell engager in relapsed/refractory multiple myeloma", phase: "Phase 1/2", indication: "Relapsed/refractory multiple myeloma", mechanism: "BCMA x CD3 bispecific T-cell engaging antibody", priorTherapy: "Prior CAR-T cell therapy permitted", biomarker: "None required for enrollment", endpoint: "Overall response rate and safety", region: "North America, EU", status: "Recruiting" },
+    { id: "RWE-SYN-012", title: "Oral TYK2 inhibitor in rheumatoid arthritis, inadequate responders to methotrexate", phase: "Phase 2", indication: "Rheumatoid arthritis", mechanism: "Oral, selective TYK2 inhibitor", priorTherapy: "Inadequate response to methotrexate required; biologic-naive", biomarker: "Anti-CCP positive subgroup analyzed separately", endpoint: "ACR20 response at week 12", region: "Global", status: "Recruiting" }
+  ];
+
+  CORPUS.forEach(function (d) {
+    d.searchText = [d.title, d.indication, d.mechanism, d.priorTherapy, d.biomarker, d.endpoint, d.phase, d.region, d.status].join(" ");
+  });
+
+  var EXAMPLES = [
+    "Phase 2 or later trials in Crohn's disease that allow prior anti-TNF failure",
+    "Which trials use a companion diagnostic or biomarker to select patients?",
+    "Any gene therapy trials in ophthalmology?",
+    "Oncology trials for patients who already had CAR-T therapy",
+    "Trials measuring change in body weight"
+  ];
+
+  /* ---------- 2. Tiny TF-IDF engine, no libraries ---------- */
+  var STOPWORDS = ("a an the of in on for to with and or is are was were that this these those "
+    + "any already have has had at by as which who what allow allows allowed patients trial trials")
+    .split(" ").reduce(function (s, w) { s[w] = true; return s; }, {});
+
+  function tokenize(text) {
+    return (text || "").toLowerCase()
+      .replace(/[^a-z0-9\/\-\s]/g, " ")
+      .split(/\s+/)
+      .filter(function (t) { return t.length > 2 && !STOPWORDS[t]; });
+  }
+
+  var N = CORPUS.length;
+  var docFreq = {};
+  var docTokens = CORPUS.map(function (d) {
+    var toks = tokenize(d.searchText);
+    var seen = {};
+    toks.forEach(function (t) {
+      if (!seen[t]) { seen[t] = true; docFreq[t] = (docFreq[t] || 0) + 1; }
+    });
+    return toks;
+  });
+
+  function idf(term) {
+    var df = docFreq[term] || 0;
+    return Math.log((N + 1) / (df + 1)) + 1;
+  }
+
+  function vectorize(tokens) {
+    var counts = {};
+    tokens.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+    var vec = {}, norm = 0;
+    Object.keys(counts).forEach(function (t) {
+      var tf = counts[t] / tokens.length;
+      var w = tf * idf(t);
+      vec[t] = w;
+      norm += w * w;
+    });
+    return { vec: vec, norm: Math.sqrt(norm) };
+  }
+
+  var docVectors = docTokens.map(vectorize);
+
+  function cosine(qv, dv) {
+    if (qv.norm === 0 || dv.norm === 0) return 0;
+    var dot = 0;
+    var qterms = Object.keys(qv.vec);
+    for (var i = 0; i < qterms.length; i++) {
+      var t = qterms[i];
+      if (dv.vec[t]) dot += qv.vec[t] * dv.vec[t];
+    }
+    return dot / (qv.norm * dv.norm);
+  }
+
+  function retrieve(query, topK) {
+    var qTokens = tokenize(query);
+    var qv = vectorize(qTokens);
+    var scored = CORPUS.map(function (d, i) {
+      var score = cosine(qv, docVectors[i]);
+      var matched = qTokens.filter(function (t) { return docTokens[i].indexOf(t) !== -1; });
+      var uniqueMatched = matched.filter(function (t, idx) { return matched.indexOf(t) === idx; });
+      return { doc: d, score: score, matched: uniqueMatched };
+    });
+    scored.sort(function (a, b) { return b.score - a.score; });
+    return scored.filter(function (s) { return s.score > 0; }).slice(0, topK || 4);
+  }
+
+  /* ---------- 3. UI wiring ---------- */
+  var qEl = document.getElementById("q");
+  var chipsEl = document.getElementById("chips");
+  var resultsEl = document.getElementById("results");
+  var emptyNote = document.getElementById("empty-note");
+  var synthSection = document.getElementById("synth-section");
+  var deterministicBody = document.getElementById("deterministic-body");
+  var aiSynth = document.getElementById("ai-synth");
+  var aiBody = document.getElementById("ai-body");
+  var contextPreview = document.getElementById("context-preview");
+  var keyStatus = document.getElementById("key-status");
+  var lastRetrieved = [];
+  var lastQuery = "";
+
+  EXAMPLES.forEach(function (ex) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = ex;
+    b.addEventListener("click", function () { qEl.value = ex; runSearch(); });
+    chipsEl.appendChild(b);
+  });
+
+  function fieldRow(label, value) {
+    return '<span><b>' + label + ':</b> ' + value + '</span>';
+  }
+
+  function renderResults(hits, query) {
+    resultsEl.innerHTML = "";
+    if (!hits.length) {
+      emptyNote.style.display = "block";
+      emptyNote.textContent = query
+        ? 'No protocol in this 12-record demo corpus matched "' + query + '" — try one of the example questions above, or a broader term.'
+        : "Type a question above, or click an example, to run the retrieval.";
+      synthSection.style.display = "none";
+      return;
+    }
+    emptyNote.style.display = "none";
+    hits.forEach(function (h, i) {
+      var d = h.doc;
+      var card = document.createElement("div");
+      card.className = "result-card" + (i === 0 ? " top" : "");
+      var matchLine = h.matched.length
+        ? '<div class="result-match">Matched on: <b>' + h.matched.join(", ") + "</b></div>"
+        : '<div class="result-match">Matched by overall similarity to the question.</div>';
+      card.innerHTML =
+        '<div class="result-head"><div class="result-title">' + d.id + " — " + d.title + '</div>'
+        + '<div class="result-score">score ' + h.score.toFixed(3) + "</div></div>"
+        + '<div class="result-meta">' + [
+            fieldRow("Phase", d.phase), fieldRow("Status", d.status), fieldRow("Region", d.region)
+          ].join("") + "</div>"
+        + '<div class="result-meta">' + [
+            fieldRow("Prior therapy", d.priorTherapy), fieldRow("Endpoint", d.endpoint)
+          ].join("") + "</div>"
+        + matchLine;
+      resultsEl.appendChild(card);
+    });
+    synthSection.style.display = "block";
+  }
+
+  function renderDeterministicSynthesis(hits) {
+    if (!hits.length) { deterministicBody.innerHTML = ""; return; }
+    var lines = hits.map(function (h) {
+      var d = h.doc;
+      return '<div class="synth-line"><span class="cite">' + d.id + '</span> &mdash; '
+        + d.phase + ", " + d.indication + ". " + d.priorTherapy + ". Primary endpoint: " + d.endpoint.toLowerCase() + ".</div>";
+    });
+    lines.push('<div class="synth-line" style="color:#6e6e73;font-size:12px;">That’s a direct readout of the ' + hits.length + " retrieved record" + (hits.length > 1 ? "s" : "") + " — no model was involved in writing it.</div>");
+    deterministicBody.innerHTML = lines.join("");
+  }
+
+  function runSearch() {
+    var query = qEl.value.trim();
+    lastQuery = query;
+    var hits = retrieve(query, 4);
+    lastRetrieved = hits;
+    renderResults(hits, query);
+    renderDeterministicSynthesis(hits);
+    aiSynth.style.display = "none";
+  }
+
+  document.getElementById("search-btn").addEventListener("click", runSearch);
+  qEl.addEventListener("keydown", function (e) { if (e.key === "Enter") runSearch(); });
+
+
+  /* ---------- 4. Optional grounded LLM call (any OpenAI-compatible or Anthropic-style API) ---------- */
+  var PROVIDERS = {
+    openai: { baseUrl: "https://openrouter.ai/api/v1", model: "meta-llama/llama-3.3-70b-instruct" },
+    anthropic: { baseUrl: "https://api.anthropic.com/v1", model: "claude-sonnet-4-5" }
+  };
+  var providerEl = document.getElementById("llm-provider");
+  var baseEl = document.getElementById("llm-base");
+  var modelEl = document.getElementById("llm-model");
+  var hostEl = document.getElementById("llm-host");
+  function syncHost() { try { hostEl.textContent = new URL(baseEl.value).host; } catch (e) { hostEl.textContent = baseEl.value; } }
+  function applyProvider() { var p = PROVIDERS[providerEl.value]; baseEl.value = p.baseUrl; modelEl.value = p.model; syncHost(); }
+  providerEl.addEventListener("change", applyProvider);
+  baseEl.addEventListener("input", syncHost);
+  applyProvider();
+
+  async function callLLM(apiKey, system, user) {
+    var base = baseEl.value.replace(/\/+$/, ""), model = modelEl.value.trim(), res;
+    if (providerEl.value === "anthropic") {
+      res = await fetch(base + "/messages", {
+        method: "POST",
+        headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: model, max_tokens: 400, system: system, messages: [{ role: "user", content: user }] })
+      });
+    } else {
+      res = await fetch(base + "/chat/completions", {
+        method: "POST",
+        headers: { "content-type": "application/json", "authorization": "Bearer " + apiKey },
+        body: JSON.stringify({ model: model, max_tokens: 400, messages: [{ role: "system", content: system }, { role: "user", content: user }] })
+      });
+    }
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || data.error) {
+      var m = data && data.error && (data.error.message || data.error);
+      throw new Error(typeof m === "string" ? m : ("API error " + res.status));
+    }
+    var text = providerEl.value === "anthropic"
+      ? (data.content || []).map(function (c) { return c.text || ""; }).join("")
+      : ((data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "");
+    return text.trim();
+  }
+
+  var SYSTEM_PROMPT = "You are a clinical evidence assistant operating inside a governed retrieval-augmented pipeline. "
+    + "You will be given a user question and a fixed set of retrieved protocol excerpts. Answer using ONLY the information "
+    + "in those excerpts — do not use any outside or general knowledge about real clinical trials, drugs, or companies. "
+    + "Cite the protocol ID (e.g. RWE-SYN-003) for every specific claim you make, inline, in parentheses. "
+    + "If the excerpts do not contain enough information to answer confidently, say so explicitly instead of guessing. "
+    + "Keep the answer to 3-5 sentences. Return plain text only, no markdown formatting.";
+
+  function buildContext(hits, query) {
+    var excerpts = hits.map(function (h) {
+      var d = h.doc;
+      return d.id + ": " + d.title + " | " + d.phase + " | " + d.indication + " | " + d.mechanism
+        + " | Prior therapy: " + d.priorTherapy + " | Biomarker: " + d.biomarker
+        + " | Endpoint: " + d.endpoint + " | Region: " + d.region + " | Status: " + d.status;
+    }).join("\n");
+    return "QUESTION:\n" + query + "\n\nRETRIEVED EXCERPTS (only source of truth):\n" + excerpts;
+  }
+
+  function linkifyCitations(text) {
+    return text.replace(/\(?(RWE-SYN-\d{3})\)?/g, function (m, id) {
+      return '<span class="cite">' + id + "</span>";
+    });
+  }
+
+  async function callGrounded(apiKey, hits, query) {
+    var contextStr = buildContext(hits, query);
+    var text = await callLLM(apiKey, SYSTEM_PROMPT, contextStr);
+    return { text: text, context: contextStr };
+  }
+
+  document.getElementById("key-btn").addEventListener("click", async function () {
+    var apiKey = document.getElementById("api-key").value.trim();
+    if (!lastRetrieved.length) {
+      keyStatus.className = "key-status err";
+      keyStatus.textContent = "Run a search first — step 3 grounds itself on step 1's retrieval, it has nothing to synthesize yet.";
+      return;
+    }
+    if (!apiKey) {
+      keyStatus.className = "key-status err";
+      keyStatus.textContent = "Add an LLM API key above to run step 3 live, or rely on the deterministic synthesis above (which needs no key at all).";
+      return;
+    }
+    keyStatus.className = "key-status pending";
+    keyStatus.textContent = "Calling the model with the grounded context only…";
+    try {
+      var result = await callGrounded(apiKey, lastRetrieved, lastQuery);
+      aiBody.innerHTML = '<div class="synth-line">' + linkifyCitations(result.text) + "</div>";
+      contextPreview.textContent = "SYSTEM PROMPT:\n" + SYSTEM_PROMPT + "\n\n" + result.context;
+      aiSynth.style.display = "block";
+      keyStatus.className = "key-status ok";
+      keyStatus.textContent = "Done — the answer above cites only the excerpts shown in “What was actually sent to the model.”";
+    } catch (err) {
+      keyStatus.className = "key-status err";
+      keyStatus.textContent = "Couldn't complete the call: " + err.message + ". The deterministic synthesis above still works with no key.";
+    }
+  });
+
+  /* ---------- 5. Seed with one example on load ---------- */
+  qEl.value = EXAMPLES[0];
+  runSearch();
+})();
+</script>
+</body>
+</html>
